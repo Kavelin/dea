@@ -6,6 +6,8 @@ body {
     color:white;
     font-family: monospace;
     overflow:hidden;
+    background-image: linear-gradient(90deg, rgba(255, 166, 0, 0.15), rgba(238, 130, 238, 0.15));
+    /* NOTE FOR LATER: have the background image opacity pulse based on master audio it would look so cool! */
 }
 #container {
     display:flex;
@@ -65,8 +67,8 @@ button {
     display:flex;
 }
 #position {
-    width:3px;
-    background:#fff;
+    width:2px;
+    background: fixed linear-gradient(90deg, orange, violet);
     position: relative;
 }
 .bef-space {
@@ -76,7 +78,9 @@ button {
 }
 .measure-c {
     width:150px;
-    margin:0 4px 0 0;
+    margin:0;
+    padding:0 2px;
+    box-sizing: border-box;
     height:16px;
     border:white 1px solid;
 }
