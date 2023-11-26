@@ -1,9 +1,9 @@
 <template>
   <NuxtLayout>
     <NuxtLoadingIndicator />
-    <NuxtPage></NuxtPage
-  ></NuxtLayout>
+    <NuxtPage></NuxtPage>
+  </NuxtLayout>
 </template>
 <script setup lang="ts">
-import "@/style.css";
+import "./css/style.css";
 </script>
