@@ -18,19 +18,38 @@
       <div id="mid">
         <button title="play" @click="playBtn">⏯</button>
         <button title="stop" @click="stopBtn">🟦</button>
-        <button title="warpTo" @click="warpBtn">⚓</button>
+        <button title="warp to play line" @click="warpBtn">⚓</button>
         <button title="record">🔴</button>
       </div>
       <div id="right"></div>
     </div>
     <div id="not-top-bar">
-      <div id="palette">
-        <h3>Palette</h3>
-        <div></div>
+      <div id="modify">
+        <div
+          class="grid"
+          :style="{
+            backgroundPosition: `top ${pageModify.pan.y}px left ${pageModify.pan.x}px`,
+          }"
+        >
+          <div
+            class="node-wrap"
+            v-if="pageModify.cur"
+            :style="{
+              transform: `translate(${pageModify.pan.x}px, ${pageModify.pan.x})`,
+            }"
+          >
+            <div
+              class="node"
+              v-for="(node, i) in pageModify.cur.nodes"
+              :key="i"
+            ></div>
+          </div>
+        </div>
       </div>
       <div id="editor">
         <div
           class="sheet"
+          @click="pageModify.cur = null"
           :style="{ gridAutoRows: '24px ' + '150px '.repeat(parts.length) }"
         >
           <div class="measures">
@@ -52,8 +71,18 @@
               {{ i }}
             </div>
           </div>
-          <div class="part" v-for="(part, i) in parts" :key="i" :style="{}">
-            <div class="part-name">
+          <div
+            class="part"
+            :class="{ selected: pageModify.cur == part }"
+            v-for="(part, i) in parts"
+            :key="i"
+            :style="{}"
+            @click.stop="pageModify.cur = part"
+          >
+            <div
+              class="part-name"
+              :class="{ selected: pageModify.cur == part }"
+            >
               {{ part.name }}
             </div>
             <div
@@ -92,19 +121,23 @@
           </div>
         </div>
       </div>
-      <div id="modify">
-        <h3>Modify</h3>
-        <div></div>
-      </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+interface Node {
+  x: number;
+  y: number;
+  auNode?: AudioNode;
+  output?: Node;
+  input?: Node;
+}
 
 interface Part {
   type: string;
   name: string;
   content: MidiClip[] | AudioClip[];
+  nodes: Node[];
   noteRange?: { min: number; max: number };
 }
 
@@ -125,6 +158,12 @@ interface Note {
   pitch: number; // 0 - 127
 }
 
+interface Modify {
+  pan: { x: number; y: number };
+  cur: Part | null;
+  master: Node[];
+}
+
 let zoom = ref({ x: 1 });
 let position = ref(0); //in measures
 let positionDomHeight = ref(0);
@@ -142,6 +181,7 @@ let playing = () => {
 };
 
 let playBtn = () => {
+  ctx.resume();
   lastTime = Date.now();
   stopped = !stopped;
   playing();
@@ -150,6 +190,7 @@ let playBtn = () => {
 let stopBtn = () => {
   position.value = 0;
   stopped = true;
+  ctx.close();
 };
 let warpBtn = () => {
   document.querySelector(".sheet")!.scrollLeft =
@@ -187,8 +228,28 @@ let parts = ref(<Part[]>[
         ],
       },
     ],
+    nodes: [],
+  },
+  {
+    name: "piano2",
+    type: "midi",
+    content: [
+      <MidiClip>{
+        location: 1,
+        duration: 2,
+        notes: [
+          { pitch: 60, location: 0, duration: 0.2 },
+          { pitch: 62, location: 0.2, duration: 0.2 },
+          { pitch: 63, location: 0.4, duration: 0.2 },
+        ],
+      },
+    ],
+    nodes: [],
   },
 ]);
+
+let pageModify = ref(<Modify>{ pan: { x: 0, y: 0 }, cur: null });
+
 parts.value.forEach((p) => {
   if (p.type == "midi") {
     let pitches = p.content.flatMap((c) =>
@@ -206,7 +267,6 @@ parts.value.forEach((p) => {
 
 let keys = <{ [key: string]: any }>{};
 let ctx: AudioContext;
-
 onMounted(() => {
   ctx = new window.AudioContext();
   document.addEventListener("keydown", (e) => {
@@ -228,7 +288,5 @@ onMounted(() => {
   positionDomHeight.value = document.querySelector(".sheet")!.clientHeight!;
   lastTime = Date.now();
   playing();
-
-  defineExpose({ ctx });
 });
 </script>
