@@ -24,6 +24,7 @@
 .node-wrapper input[type=number] {
     background-color:white;
     min-width: 0;
+    width:50px;
 }
 </style>
 <script setup lang="ts">

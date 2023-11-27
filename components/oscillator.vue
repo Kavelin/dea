@@ -1,7 +1,7 @@
 <template>
     <node name="Oscillator">
       
-      <prop>
+      <prop left>
         <div>Frequency: <input v-model="freq" type="number" max="20000" min="20" step="0.01"></div>
       </prop>
       <prop right>

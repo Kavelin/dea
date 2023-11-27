@@ -1,19 +1,42 @@
 <template>
   <div class="grid">
-    <oscillator></oscillator>
-    <gain></gain>
-    <destination></destination>
-    <div id="temp-line"></div>
+    <div class="trans-wrap">
+      <div id="temp-line"></div>
+      <div id="context-menu">
+        <ul>
+          <li>oscillator</li>
+          <li>gain</li>
+          <li>destination</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 <style scoped>
 .grid {
   width: 70vw;
   height: 70vh;
-  overflow: scroll;
+  overflow: hidden;
   background-size: 20px 20px;
   background-image: radial-gradient(circle, #aaa 1px, black 0.5px);
   color: black;
+}
+#context-menu {
+  position:absolute;
+  display:none;
+  background:white;
+  
+}
+#context-menu ul {
+  padding:4px;
+  list-style-type:none!important;
+}
+.trans-wrap {
+  transform: translate(50px, 50px);
+}
+#context-menu li:hover {
+  cursor: pointer;
+  background-image:linear-gradient(#000000aa, #000000aa)
 }
 #temp-line {
   position: absolute;
@@ -27,7 +50,10 @@
 <script setup lang="ts">
 let gridEl: HTMLDivElement;
 let tempLine: HTMLDivElement;
+let nodes: NodeListOf<HTMLDivElement>;
+let menu:HTMLDivElement;
 let mouse = { x: 0, y: 0 };
+let translate = { x: 50, y: 50 };
 
 let dragMouse = { x: 0, y: 0 };
 let draggingEl: HTMLDivElement;
@@ -40,15 +66,23 @@ let lineStart = { x: 0, y: 0 };
 onMounted(() => {
   gridEl = document.querySelector(".grid")!;
   tempLine = document.querySelector("#temp-line")!;
-  document.querySelectorAll(".node-wrapper").forEach((i) => {
-    (<HTMLDivElement>i).firstChild!.addEventListener("mousedown", (e) => {
-      dragMouse.x = (<MouseEvent>e).clientX;
-      dragMouse.y = (<MouseEvent>e).clientY;
-      draggingEl = <HTMLDivElement>i;
-      dragging = true;
-    });
+  nodes = document.querySelectorAll(".node-wrapper")!;
+  menu = document.querySelector("#context-menu")!;
+  nodes.forEach((i) => {
+    (<HTMLDivElement>i.firstChild!).addEventListener(
+      "mousedown",
+      (e: MouseEvent) => {
+        dragMouse.x = e.clientX;
+        dragMouse.y = e.clientY;
+        draggingEl = <HTMLDivElement>i;
+        dragging = true;
+      }
+    );
   });
   gridEl.oncontextmenu = (e: MouseEvent) => {
+    menu.style.display = "block";
+    menu.style.top = `${e.clientY - translate.y}px`;
+    menu.style.left = `${e.clientX  - translate.x}px`;
     e.preventDefault();
   };
   gridEl.addEventListener("mouseup", (e: MouseEvent) => {
@@ -59,68 +93,76 @@ onMounted(() => {
     }
     dragging = false;
   });
+  gridEl.addEventListener("mousedown", e=> { 
+    menu.style.display = "none";
+  })
   gridEl.addEventListener("mousemove", (e: MouseEvent) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
     if (connecting) {
+      mouse.x = e.clientX - translate.x;
+      mouse.y = e.clientY - translate.y;
       tempLine.style.transform = `rotate(${
-        (Math.atan2(mouse.y - lineStart.y, mouse.x - lineStart.x) * 180) /
+        (Math.atan2(
+          mouse.y - lineStart.y,
+          mouse.x - lineStart.x
+        ) *
+          180) /
         Math.PI
       }deg)`;
       tempLine.style.width = `${Math.sqrt(
-        (mouse.y - lineStart.y) ** 2 + (mouse.x - lineStart.x) ** 2
+        (mouse.y - lineStart.y) ** 2 +
+          (mouse.x - lineStart.x) ** 2
       )}px`;
-    }
-    if (dragging) {
+    } else if (dragging) {
       draggingEl.style.top =
         draggingEl.offsetTop - (dragMouse.y - e.clientY) + "px";
       draggingEl.style.left =
         draggingEl.offsetLeft - (dragMouse.x - e.clientX) + "px";
       dragMouse.x = e.clientX;
       dragMouse.y = e.clientY;
+    } else {
+      console.log(e.clientX - mouse.x);
+      (<HTMLDivElement>(
+        document.querySelector(".trans-wrap")
+      )).style.transform = `translate(${translate.x}px, ${translate.y}px)`;
+
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
     }
   });
   document.querySelectorAll(".connector").forEach((i) => {
     (<HTMLDivElement>i).addEventListener("mousedown", (e: MouseEvent) => {
       //console.log((<HTMLDivElement>i).clientTop, e);
       connectingEl = <HTMLDivElement>i;
-      lineStart.y = e.clientY;
-      lineStart.x = e.clientX;
-      tempLine.style.top = `${e.clientY}px`;
-      tempLine.style.left = `${e.clientX}px`;
+      lineStart.y = e.clientY - translate.y;
+      lineStart.x = e.clientX - translate.x;
+      tempLine.style.top = `${lineStart.y}px`;
+      tempLine.style.left = `${lineStart.x}px`;
       connecting = true;
     });
     (<HTMLDivElement>i).addEventListener("mouseup", (e: MouseEvent) => {
       if (
         connecting &&
         connectingEl.parentElement?.parentElement !=
-          (<HTMLDivElement>i).parentElement?.parentElement
+          (<HTMLDivElement>i).parentElement?.parentElement &&
+        connectingEl.classList.contains("right") &&
+        (<HTMLDivElement>i).classList.contains("left")
       ) {
         let lineEl: HTMLDivElement;
         let cr: DOMRect = connectingEl.getBoundingClientRect();
         let cri: DOMRect = (<HTMLDivElement>i).getBoundingClientRect();
-        if (
-          connectingEl.classList.contains("right") &&
-          (<HTMLDivElement>i).classList.contains("left")
-        ) {
-          lineEl = <HTMLDivElement>connectingEl.firstChild;
-          lineEl.style.top = `${cr.width / 2}px`;
-          lineEl.style.left = `${cr.width / 2}px`;
-          lineEl.style.transform = `rotate(${
-            (Math.atan2(cri.y - cr.y, cri.x - cr.x) * 180) / Math.PI
-          }deg)`;
-          lineEl.style.width = `${Math.sqrt(
-            (cri.y - cr.y) ** 2 + (cri.x - cr.x) ** 2
-          )}px`;
-        }
-        if (
-          connectingEl.classList.contains("left") &&
-          (<HTMLDivElement>i).classList.contains("right")
-        ) {
-          lineEl = <HTMLDivElement>i.parentElement?.querySelector(".line");
-        }
+        lineEl = <HTMLDivElement>connectingEl.firstChild;
+        lineEl.style.transform = `rotate(${
+          (Math.atan2(cri.y - cr.y, cri.x - cr.x) * 180) / Math.PI
+        }deg)`;
+        lineEl.style.width = `${Math.sqrt(
+          (cri.y - cr.y) ** 2 + (cri.x - cr.x) ** 2
+        )}px`;
       }
     });
   });
 });
+function addElement(s:string) {
+  
+  gridEl.firstChild?.appendChild
+}
 </script>

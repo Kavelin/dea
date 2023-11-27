@@ -24,6 +24,8 @@ defineProps(["left", "right"]);
   background: rgb(105, 128, 0);
   transform: rotate(0deg);
   transform-origin: 0% 0%;
+  top:4px;
+  left:4px;
   pointer-events: none;
 }
 .prop {
