@@ -24,19 +24,16 @@
       <div id="modify">
         <div class="grid" :style="{
           backgroundPosition: `top ${pageModify.pan.y}px left ${pageModify.pan.x}px`,
-        }" @contextmenu.prevent @mousedown="pageModify.pan.moving = true;" @mousemove="($event) => {
-          if (pageModify.pan.moving) {
-            pageModify.pan.y--;
-          }
-        }"
-          @mouseup="pageModify.pan.moving = false;">
+        }" @contextmenu.prevent @mousedown="drag.grid($event, 'down', pageModify)" @mousemove="drag.grid($event, 'move', pageModify)"
+          @mouseup="pageModify.pan.moving = false;" @mouseout="pageModify.pan.moving = false;">
           <div class="node-wrap" v-if="pageModify.cur" :style="{
-            transform: `translate(${pageModify.pan.x}px, ${pageModify.pan.y})`,
+            transform: `translate(${pageModify.pan.x}px, ${pageModify.pan.y}px)`,
           }">
             <div class="node" v-for="(node, i) in pageModify.cur.nodes"
               :style="{ top: node.y + 'px', left: node.x + 'px' }" :key="i">
 
-              <div class="node-title">{{ node.name }}</div>
+              <div class="node-title" @mousedown.stop="drag.node($event, 'down', node)" @mousemove.stop="drag.node($event, 'move', node)"
+          @mouseup.stop="node.moving = false;" >{{ node.name }}</div>
 
               <prop left right>
                 <div> in/out </div>
@@ -90,49 +87,8 @@
 </template>
 <script setup lang="ts">
 
-interface Node {
-  x: number;
-  y: number;
-  name: string;
-  auNode?: AudioNode;
-  output?: Node;
-  input?: Node;
-}
-
-interface Part {
-  type: string;
-  name: string;
-  content: MidiClip[] | AudioClip[];
-  nodes: Node[];
-  noteRange: { min: number; max: number };
-}
-
-interface MidiClip {
-  location: number; //in measures
-  duration: number; //in measures
-  notes: Array<Note>; //would a map be better
-}
-
-interface AudioClip { //still not implemented...
-  location: number; //in measures
-  duration: number; //in measures?
-  src: string;
-}
-
-interface Note {
-  location: number; // in measures relative to beginning of clip
-  duration: number;  //in measures
-  pitch: number; // 0 - 127
-}
-
-interface Modify {
-  pan: {
-    x: number; y: number,
-    moving: boolean,
-  };  //moves the background and nodes
-  cur: Part | null; // if cur is null (no part is selected), 
-  master: Node[]; //   master is shown to send all parts to output
-}
+import type {Node, Part, MidiClip, AudioClip, Note, Modify} from "../ts/types"; 
+import * as drag from "../ts/drag";
 
 let zoom = ref({ x: 1 });
 let position = ref(0); // playhead position in measures
@@ -142,7 +98,7 @@ let stopped = true;
 let playing = () => {
   if (!stopped) {
     let timeEla = Date.now() - lastTime;  //time elapsed since last update
-    position.value +=   //positio
+    position.value +=  
       timeEla / ((240000 / timeSig.bottom / tempo) * timeSig.top);
     //60000 miliseconds in a minute * 4 / bottom
     //
@@ -167,6 +123,9 @@ let warpBtn = () => {
   document.querySelector(".sheet")!.scrollLeft =
     position.value * zoom.value.x * 150;
 };
+
+//don't let this project die like your other projects
+
 
 let tempo = 120; // beats per minute
 let timeSig = {
@@ -201,7 +160,7 @@ let parts = ref(<Part[]>[
       <MidiClip>{
         location: 1,
         duration: 2,
-        notes: [
+        notes: <Note[]>[
           { pitch: 60, location: 0, duration: 0.2 },
           { pitch: 62, location: 0.2, duration: 0.2 },
           { pitch: 63, location: 0.4, duration: 0.2 },
@@ -212,10 +171,11 @@ let parts = ref(<Part[]>[
         ],
       },
     ],
-    nodes: [{
-      x: 100,
-      y: 100,
+    nodes: <Node[]>[{
+      x: 0,
+      y: 0,
       name: "hey",
+      moving:false
     }],
   },
   {
@@ -225,20 +185,20 @@ let parts = ref(<Part[]>[
       <MidiClip>{
         location: 1,
         duration: 2,
-        notes: [
+        notes: <Note[]>[
           { pitch: 60, location: 0, duration: 0.2 },
           { pitch: 62, location: 0.2, duration: 0.2 },
           { pitch: 63, location: 0.4, duration: 0.2 },
         ],
       },
     ],
-    nodes: [],
+    nodes: <Node[]>[],
   },
 ]);
 
-let pageModify = ref(<Modify>{ pan: { x: 50, y: 50, moving: false }, cur: null, master: [] });
+let pageModify = ref(<Modify>{ pan: { x: 0, y: 0, moving: false, offset: { x: 0, y: 0 } }, cur: null, master: [] });
 
-parts.value.map((p) => {
+parts.value.map((p) => { // generating midi clip ranges for each part
   if (p.type == "midi") {
     let pitches = p.content.flatMap((c) =>
       (<MidiClip>c).notes.map((n) => n.pitch)
