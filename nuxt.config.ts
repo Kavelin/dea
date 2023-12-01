@@ -1,5 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  logLevel:'verbose',
+  telemetry: false,
     app: {
         head: {
           title: "Dea",

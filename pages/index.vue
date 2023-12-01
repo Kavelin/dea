@@ -33,10 +33,13 @@
               :style="{ top: node.y + 'px', left: node.x + 'px' }" :key="i">
 
               <div class="node-title" @mousedown.stop="drag.node($event, 'down', node)" @mousemove.stop="drag.node($event, 'move', node)"
-          @mouseup.stop="node.moving = false;" >{{ node.name }}</div>
+          @mouseup.stop="drag.node($event, 'up', node)" @mouseout.stop="drag.node($event, 'up', node)">{{ node.name }}</div>
 
-              <prop left right>
-                <div> in/out </div>
+              <prop v-for="inp, i in node.input" :key="i" right>
+                <div> Output </div>
+              </prop>
+              <prop v-if="node.output" right>
+                <div> Output </div>
               </prop>
             </div>
           </div>
@@ -86,10 +89,9 @@
   </div>
 </template>
 <script setup lang="ts">
-
 import type {Node, Part, MidiClip, AudioClip, Note, Modify} from "../ts/types"; 
 import * as drag from "../ts/drag";
-
+let c = ref(console);
 let zoom = ref({ x: 1 });
 let position = ref(0); // playhead position in measures
 let positionDomHeight = ref(0);  //  calculate how tall the playhead is
@@ -102,6 +104,8 @@ let playing = () => {
       timeEla / ((240000 / timeSig.bottom / tempo) * timeSig.top);
     //60000 miliseconds in a minute * 4 / bottom
     //
+
+    c.value.log('node.mOffset.x')
     lastTime = Date.now();
     requestAnimationFrame(playing); //this could get a bit laggy? may have to change
   }
@@ -174,6 +178,7 @@ let parts = ref(<Part[]>[
     nodes: <Node[]>[{
       x: 0,
       y: 0,
+      mOffset: {x:0, y:0},
       name: "hey",
       moving:false
     }],
