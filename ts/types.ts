@@ -1,12 +1,40 @@
-export interface Node {
-  x: number;
-  y: number;
-  moving: boolean;
-  mOffset: { x: number; y: number };
+type NumberInput = {
+  node: Node | null;
   name: string;
-  auNode?: AudioNode;
-  output: Node | null;
-  input: Node | null;
+  val: number;
+  min: number;
+  max: number;
+}
+type OptionInput = {
+  node: Node | null;
+  name: string;
+  options: Array<any>;
+}
+type AudioInput = {
+  node: Node | null;
+  name: string;
+}
+
+export type Input = NumberInput | AudioInput | OptionInput;
+
+export interface Output {
+  node: Node | null;
+  name: string;
+}
+
+export abstract class Node {
+  public x: number = 0;
+  public y: number = 0;
+  public moving: boolean = false;
+  public mOffset: { x: number; y: number } = {x: 0, y:0};
+  public name: string = '';
+  public auNode?: any;
+  public output: Output[] = [];
+  public input: Input[] = [];
+  constructor(x:number, y:number) {
+    this.x = x;
+    this.y = y;
+  }
 }
 
 export interface Part {

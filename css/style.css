@@ -177,7 +177,6 @@ body {
 }
 
 .node-wrap {
-    overflow:hidden;
     position:relative;
     width:100%;
     height:100%;
@@ -200,4 +199,18 @@ body {
     cursor: move;
     color: white;
     border: 1px solid #d3d3d3;
+}
+.context-menu {
+  position:absolute;
+  display:none;
+  background:black;
+  
+}
+.context-menu ul {
+  padding:4px;
+  list-style-type:none!important;
+}
+.context-menu li:hover {
+  cursor: pointer;
+  background-image:linear-gradient(#ffffffaa, #ffffffaa)
 }

@@ -2,8 +2,8 @@
 
 to-do list
 - finish basic layout
-    - draggable nodes
     - connecting nodes
+    - create nodes that correlate with their webaudio counterparts
 - implement nodes with sound
     - start with only a few nodes
 - have the background image opacity pulse based on master audio
@@ -23,5 +23,11 @@ future plans so i don't forget!
 - backend
     - use mongodb for storing files
     - implement collaboration with socket.io
+- use tauri to make an os app?
+    - https://www.youtube.com/watch?v=MOnf_kGI6L0 
+    - idk if this is even like gonna be useful
+    - maybe if i add collaboration features, but this requires backend which isn't supported in tauri 
+    - using electron is way too bulky for this project! or maybe not?
+    
 
 so many more plans than to-do lol
