@@ -11,6 +11,7 @@
     "nuxt": "^3.8.2"
   },
   "dependencies": {
-    "baklavajs": "^2.2.0"
+    "baklavajs": "^2.2.0",
+    "scl-to-frequency": "^1.0.3"
   }
 }

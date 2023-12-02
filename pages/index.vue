@@ -24,22 +24,23 @@
       <div id="modify">
         <div class="grid" :style="{
           backgroundPosition: `top ${pageModify.pan.y}px left ${pageModify.pan.x}px`,
-        }" @contextmenu.prevent="gridCtxMenu" @mousedown="($event)=> {
-            drag.grid($event, 'down', pageModify);
-            (<HTMLDivElement>gridMenu!).style.display = 'none';
-          }" @mousemove="drag.grid($event, 'move', pageModify)"
-          @mouseup="pageModify.pan.moving = false;" @mouseout="pageModify.pan.moving = false;">
+        }" @contextmenu.prevent="gridCtxMenu" @mousedown="($event) => {
+  drag.grid($event, 'down', pageModify);
+  (<HTMLDivElement>gridMenu!).style.display = 'none';
+}" @mousemove="drag.grid($event, 'move', pageModify)" @mouseup="pageModify.pan.moving = false;"
+          @mouseout="pageModify.pan.moving = false;">
           <div class="node-wrap" v-if="pageModify.cur" :style="{
             transform: `translate(${pageModify.pan.x}px, ${pageModify.pan.y}px)`,
           }">
             <div class="node" v-for="(node, i) in pageModify.cur.nodes"
               :style="{ top: node.y + 'px', left: node.x + 'px' }" :key="i">
 
-              <div class="node-title" @mousedown.stop="drag.node($event, 'down', node)" @mousemove.stop="drag.node($event, 'move', node)"
-          @mouseup.stop="drag.node($event, 'up', node)" @mouseout.stop="drag.node($event, 'up', node)">{{ node.name }}</div>
+              <div class="node-title" @mousedown.stop="drag.node($event, 'down', node)"
+                @mousemove.stop="drag.node($event, 'move', node)" @mouseup.stop="drag.node($event, 'up', node)"
+                @mouseout.stop="drag.node($event, 'up', node)">{{ node.name }}</div>
 
               <prop v-for="inp, i in node.input" :key="i" left>
-                <div> {{ inp.name }}  </div>
+                <div> {{ inp.name }} </div>
               </prop>
               <prop v-for="out, o in node.output" :key="o" right>
                 <div> {{ out.name }} </div>
@@ -49,7 +50,7 @@
 
           <div class="context-menu" ref="gridMenu">
             <ul>
-              <li v-for="n in nodes" @mousedown.stop="ctxMenuClick($event, n)">{{n.name}}</li>
+              <li v-for="n in nodes" @mousedown.stop="ctxMenuClick($event, n)" :key="n.name">{{ n.name }}</li>
             </ul>
           </div>
         </div>
@@ -98,9 +99,10 @@
   </div>
 </template>
 <script setup lang="ts">
-import {Node, type Part, type MidiClip, type AudioClip, type Note, type Modify, type Output, type Input} from "../ts/types"; 
+import { Node, type Part, type MidiClip, type AudioClip, type Note, type Modify, type Output, type Input } from "../ts/types";
 import * as drag from "../ts/drag";
 import * as nodes from "../ts/audio";
+import * as scl from "scl-to-frequency";
 
 let c = ref(console);
 let zoom = ref({ x: 1 });
@@ -111,7 +113,7 @@ let stopped = true;
 let playing = () => {
   if (!stopped) {
     let timeEla = Date.now() - lastTime;  //time elapsed since last update
-    position.value +=  
+    position.value +=
       timeEla / ((240000 / timeSig.bottom / tempo) * timeSig.top);
     //60000 miliseconds in a minute * 4 / bottom
     //
@@ -121,9 +123,21 @@ let playing = () => {
     requestAnimationFrame(playing); //this could get a bit laggy? may have to change
   }
 };
-
+let oscillatorNodes:OscillatorNode[] = [];
 let playBtn = () => {
-  ctx.resume();
+  if (ctx.state != "running") {
+    ctx.resume();
+    oscillatorNodes = [];
+    let oscillator = ctx.createOscillator();
+    oscillator.type = "sawtooth";
+    oscillator.frequency.setValueAtTime(50, ctx.currentTime);
+    oscillator.connect(ctx.destination);
+    oscillator.start();
+    oscillatorNodes.push()
+  } else {
+    ctx.suspend();
+    oscillatorNodes.map(x => x.stop());
+  };
   lastTime = Date.now();
   stopped = !stopped;
   playing();
@@ -132,7 +146,7 @@ let playBtn = () => {
 let stopBtn = () => {
   position.value = 0;
   stopped = true;
-  ctx.close();
+  ctx.suspend();
 };
 let warpBtn = () => {
   document.querySelector(".sheet")!.scrollLeft =
@@ -168,18 +182,18 @@ let inputs = (e: Event) => {  //div contenteditable inputs can't have v-model :)
 };
 
 let gridMenu = ref(null);
-let gridCtxMenu = (e:MouseEvent) => {
+let gridCtxMenu = (e: MouseEvent) => {
   let ele = <HTMLDivElement>gridMenu.value!;
   ele.style.display = 'block';
   ele.style.top = `${e.clientY}px`;
   ele.style.left = `${e.clientX}px`;
 }
 
-let ctxMenuClick = (e:MouseEvent, n:new (x:number, y:number, ctx: AudioContext) => any) => {
+let ctxMenuClick = (e: MouseEvent, n: new (x: number, y: number, ctx: AudioContext) => any) => {
   (<HTMLDivElement>gridMenu.value!).style.display = 'none';
   pageModify.value.cur?.nodes.push(new n(
-    e.clientX - document.querySelector('.grid')!.getBoundingClientRect().y - pageModify.value.pan.x, 
-    e.clientY - document.querySelector('.grid')!.getBoundingClientRect().y - pageModify.value.pan.y, 
+    e.clientX - document.querySelector('.grid')!.getBoundingClientRect().y - pageModify.value.pan.x,
+    e.clientY - document.querySelector('.grid')!.getBoundingClientRect().y - pageModify.value.pan.y,
     ctx));
 
 }

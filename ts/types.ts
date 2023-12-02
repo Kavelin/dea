@@ -5,12 +5,18 @@ type NumberInput = {
   min: number;
   max: number;
 }
+
 type OptionInput = {
   node: Node | null;
   name: string;
   options: Array<any>;
 }
 type AudioInput = {
+  node: Node | null;
+  name: string;
+}
+
+type MidiInput = {
   node: Node | null;
   name: string;
 }
