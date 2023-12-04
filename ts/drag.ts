@@ -1,11 +1,12 @@
 import type { Node, Modify } from "./types";
-export let grid = (e: MouseEvent, t: string, mod: Modify) => {
+export let grid = (e: MouseEvent, t: string, mod: Modify, gridMenu?: HTMLDivElement | null) => {
   if (t == "down" && !mod.pan.moving) {
     mod.pan.moving = true;
     mod.pan.offset.x =
       e.clientX - (<HTMLDivElement>e.target).clientLeft - mod.pan.x;
     mod.pan.offset.y =
       e.clientY - (<HTMLDivElement>e.target).clientTop - mod.pan.y;
+    if (gridMenu) gridMenu.style.display = 'none';
   }
   if (t == "move" && mod.pan.moving) {
     mod.pan.x = e.clientX - mod.pan.offset.x;

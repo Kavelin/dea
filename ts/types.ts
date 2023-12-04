@@ -34,7 +34,6 @@ export abstract class Node {
   public moving: boolean = false;
   public mOffset: { x: number; y: number } = {x: 0, y:0};
   public name: string = '';
-  public auNode?: any;
   public output: Output[] = [];
   public input: Input[] = [];
   constructor(x:number, y:number) {
