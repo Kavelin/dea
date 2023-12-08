@@ -24,7 +24,10 @@ type MidiInput = {
 export type Input = NumberInput | AudioInput | OptionInput;
 
 export interface Output {
-  node: Node | null;
+  outs: {
+    node: Node | null;
+    index: number;
+  }[];
   name: string;
 }
 
@@ -32,11 +35,12 @@ export abstract class Node {
   public x: number = 0;
   public y: number = 0;
   public moving: boolean = false;
-  public mOffset: { x: number; y: number } = {x: 0, y:0};
+  public mOffset: { x: number; y: number } = { x: 0, y: 0 };
   public name: string = '';
   public output: Output[] = [];
   public input: Input[] = [];
-  constructor(x:number, y:number) {
+  public el:HTMLDivElement|null = null;
+  constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
   }
@@ -76,6 +80,7 @@ export interface Modify {
     moving: boolean;
     offset: { x: number; y: number };
   }; //moves the background and nodes
+  tempLine: { mouse: { x: number, y: number }, el: HTMLDivElement|null, out:Output|null}
   cur: Part | null; // if cur is null (no part is selected),
   master: Node[]; //   master is shown to send all parts to output
 }

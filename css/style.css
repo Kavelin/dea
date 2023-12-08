@@ -147,13 +147,13 @@ body {
     width: 100%;
     background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
     box-sizing: border-box;
-    cursor:grab;
+    cursor: grab;
 }
 
 .midi-content {
-    height:85%;
-    width:100%;
-    position:relative;
+    height: 85%;
+    width: 100%;
+    position: relative;
 }
 
 .note {
@@ -173,13 +173,13 @@ body {
     background-image:
         linear-gradient(to right, #333 1px, transparent 1px),
         linear-gradient(to bottom, #333 1px, transparent 1px);
-    overflow:hidden;
+    overflow: hidden;
 }
 
 .node-wrap {
-    position:relative;
-    width:100%;
-    height:100%;
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 .node {
@@ -199,17 +199,59 @@ body {
     color: white;
     border: 1px solid #d3d3d3;
 }
+
+
+.connector {
+    background: orange;
+    width: 8px;
+    height: 8px;
+    position: relative;
+    border-radius: 50%;
+    z-index:100;
+}
+
+.line {
+    position: absolute;
+    z-index:-1;
+    height: 2px;
+    background: rgb(96, 0, 128);
+    transform: rotate(45deg);
+    transform-origin: 0% 0%;
+    width:500px;
+    top: 4px;
+    left: 4px;
+    pointer-events: none;
+}
+
+.prop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height:30px;
+}
+
+.left {
+    right: 5px;
+}
+
+.right {
+    left: 5px;
+}
+
+
 .context-menu {
-  position:absolute;
-  display:none;
-  background:black;
-  
+    position: absolute;
+    display: none;
+    background: black;
+
 }
+
 .context-menu ul {
-  padding:4px;
-  list-style-type:none!important;
+    padding: 4px;
+    list-style-type: none !important;
 }
+
 .context-menu li:hover {
-  cursor: pointer;
-  background-image:linear-gradient(#ffffffaa, #ffffffaa)
+    cursor: pointer;
+    background-image: linear-gradient(#ffffffaa, #ffffffaa)
 }

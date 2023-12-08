@@ -12,6 +12,10 @@ export let grid = (e: MouseEvent, t: string, mod: Modify, gridMenu?: HTMLDivElem
     mod.pan.x = e.clientX - mod.pan.offset.x;
     mod.pan.y = e.clientY - mod.pan.offset.y;
   }
+  if (mod.tempLine.out) {
+    mod.tempLine.mouse.x = e.clientX - mod.tempLine.el!.getBoundingClientRect().x + (<HTMLDivElement>e.target).clientLeft;
+    mod.tempLine.mouse.y = e.clientY - mod.tempLine.el!.getBoundingClientRect().y + (<HTMLDivElement>e.target).clientTop;
+  }
 };
 
 export let node = (e: MouseEvent, t: string, node: Node) => {
