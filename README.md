@@ -7,6 +7,8 @@ to-do list
 - implement nodes with sound
     - start with only a few nodes
 - have the background image opacity pulse based on master audio
+- write comments so my code is readable
+- split index.vue into smaller files
 
 future plans so i don't forget!
 - figure out a way to do automation

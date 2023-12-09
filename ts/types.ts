@@ -21,16 +21,38 @@ type MidiInput = {
   name: string;
 }
 
-export type Input = NumberInput | AudioInput | OptionInput;
+export type Input = NumberInput | AudioInput | OptionInput | MidiInput;
+
+type NumberAttribute = {
+  name: string;
+  val: number;
+  min: number;
+  max: number;
+}
+
+type OptionAttribute = {
+  name: string;
+  selected: any;
+  options: Array<any>;
+}
+type AudioAttribute = {
+  name: string;
+}
+
+type MidiAttribute = {
+  name: string;
+}
+
+export type Attribute = NumberAttribute | AudioAttribute | OptionAttribute | MidiAttribute;
 
 export interface Output {
-  outs: {
+  outs?: {
     node: Node | null;
     index: number;
   }[];
   name: string;
+  node?: Node;
 }
-
 export abstract class Node {
   public x: number = 0;
   public y: number = 0;
@@ -39,6 +61,7 @@ export abstract class Node {
   public name: string = '';
   public output: Output[] = [];
   public input: Input[] = [];
+  public attribute: Attribute[] = [];
   public el:HTMLDivElement|null = null;
   constructor(x: number, y: number) {
     this.x = x;
@@ -71,6 +94,7 @@ export interface Note {
   location: number; // in measures relative to beginning of clip
   duration: number; //in measures
   pitch: number; // 0 - 127
+  velocity: number; // 0 - 127
 }
 
 export interface Modify {

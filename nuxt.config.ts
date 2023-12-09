@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   logLevel:'info',
+  ssr: false,
   telemetry: false,
     app: {
         head: {
