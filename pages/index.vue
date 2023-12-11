@@ -220,32 +220,28 @@ let initSound = () => {
   ctx.resume();
   oscillatorNodes = [];
   parts.value.map((p) => {
-    p.nodes.map((n) => {
-      if (n instanceof nodes.Midi) {
-        n.output[0].outs?.map((out) => {
-          if (out.node instanceof nodes.Oscillator) {
-            console.log(out.node);
-            p.content.map((c) => {
-              let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
-              if ("notes" in c) c.notes.map((note) => out.node!.auNode!.frequency.setValueAtTime(440 * 2 ** ((note.pitch - 69) / 12), clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top));
-            });
-          }
-        });
-      }
-      if (n instanceof nodes.Oscillator) {
-        n.audioCreate(ctx);
-        n.auNode!.start();
-        n.auNode!.type = <OscillatorType>n.attribute[0].selected;
-        /*p.content.map((c) => {
+    let curNode;
+    for (let nodeI = 0; nodeI < p.nodes.length; nodeI++) if (p.nodes[nodeI] instanceof nodes.Destination) {
+      curNode = p.nodes[nodeI];
+      p.nodes.map((n) => {
+        if (n instanceof nodes.Oscillator) {
+          n.create(ctx);
+          n.auNode!.start();
+          n.auNode!.type = <OscillatorType>n.attribute[0].selected;
+          /*p.content.map((c) => {
           let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
-          if ("notes" in c) c.notes.map((note) => n.auNode!.frequency.setValueAtTime(440 * 2 ** ((note.pitch - 69) / 12), clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top));
-        });*/
-        if (n.output[0].outs?.some((i) => i.node instanceof nodes.Destination)) n.auNode!.connect(ctx.destination);
-      }
-    });
+          if ("notes" in c) c.notes.map((note) => n.auNode!.frequency.setValueAtTime(440 * 2 ** ((note.pitch - 69) / 12), clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top));*/
+          if (n.output[0].outs?.some((i) => i.node instanceof nodes.Destination)) n.auNode!.connect(ctx.destination);
+        }
+      });
+      break; // there cannot be any other destination!
+    }
   });
   oscillatorNodes.forEach((x) => x.start());
 };
+let calcAttribute = () => { //recursive function
+  //have to start consider to not use the built in nodes
+}
 
 let stopSound = () => {
   ctx.suspend();

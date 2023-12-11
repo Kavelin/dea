@@ -12,7 +12,7 @@ export class Oscillator extends Node {
   public constructor(x: number, y: number) {
     super(x, y);
   }
-  public audioCreate(ctx: AudioContext) {
+  public create(ctx: AudioContext) {
     let oscillator = ctx.createOscillator();
     oscillator.type = "sine";
     this.auNode = oscillator;
@@ -29,7 +29,7 @@ export class Midi extends Node {
 }
 
 export class Destination extends Node {
-  public name = "Midi";
+  public name = "Destination";
   public output: Output[] = [];
   public input: Input[] = [{ name: "Input", node: null }];
   public constructor(x: number, y: number) {
@@ -44,7 +44,7 @@ export class Gain extends Node {
   public constructor(x: number, y: number) {
     super(x, y);
   }
-  public audioCreate(ctx: AudioContext) {
+  public create(ctx: AudioContext) {
     let gain = ctx.createGain();
     this.auNode = gain;
     return gain;
