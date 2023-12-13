@@ -1,12 +1,19 @@
 (what plans to be) an intuitive daw based on the Ableton DAW and Blender's nodes
 
 to-do list
-- finish basic layout
-    - connecting nodes
-    - create nodes that correlate with their webaudio counterparts
 - implement nodes with sound
-    - start with only a few nodes
+    - create nodes that correlate with their webaudio counterparts
+    - asdr trigger node, value node
+    - make sound exponential ramp to value cause of clicking (or just use asdr all the time :p)
+    - later: poly nodes that combine many of these into easier usable nodes
+    - every part will have a channel node instead of a destination node
+- audio tracks
+    - load audio clips
+    - canvas draw waveform (or maybe svg)
 - have the background image opacity pulse based on master audio
+- piano roll
+    - base off of fl studio? heard that was a really good piano roll
+    - make it possible to speedrun magnolia
 - write comments so my code is readable
 - split index.vue into smaller files
 
