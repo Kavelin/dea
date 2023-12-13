@@ -4,24 +4,21 @@ type NumberInput = {
   val: number;
   min: number;
   max: number;
-}
-
-type OptionInput = {
-  node: Node | null;
-  name: string;
-  options: Array<any>;
+  index: number;
 }
 type AudioInput = {
   node: Node | null;
   name: string;
+  index : number;
 }
 
 type MidiInput = {
   node: Node | null;
   name: string;
+  index:number;
 }
 
-export type Input = NumberInput | AudioInput | OptionInput | MidiInput;
+export type Input = NumberInput | AudioInput | MidiInput;
 
 type NumberAttribute = {
   name: string;
@@ -104,7 +101,12 @@ export interface Modify {
     moving: boolean;
     offset: { x: number; y: number };
   }; //moves the background and nodes
-  tempLine: { mouse: { x: number, y: number }, el: HTMLDivElement|null, out:Output|null}
+  tempLine: { 
+    mouse: { x: number, y: number }, 
+    el: HTMLDivElement|null, 
+    out:Output|null,
+    index:number,
+  }
   cur: Part | null; // if cur is null (no part is selected),
   master: Node[]; //   master is shown to send all parts to output
 }

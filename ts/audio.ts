@@ -3,10 +3,10 @@ export class Oscillator extends Node {
   public name = "Oscillator";
   public output: Output[] = [{ name: "Output", outs:[] }];
   public attribute = [
-    { name: "Type", options:["sine", "sawtooth", "square"], selected:"sine"}
+    { name: "Type", options:["sine", "sawtooth", "square", "triangle"], selected:"sine"}
   ];
   public input: Input[] = [
-    { name: "Frequency", val:440, min:20, max:200000, node: null },
+    { name: "Frequency", val:440, min:20, max:200000, node: null, index:0 },
   ];
   public auNode:OscillatorNode | undefined;
   public constructor(x: number, y: number) {
@@ -31,7 +31,7 @@ export class Midi extends Node {
 export class Destination extends Node {
   public name = "Destination";
   public output: Output[] = [];
-  public input: Input[] = [{ name: "Input", node: null }];
+  public input: Input[] = [{ name: "Input", node: null, index:0 }];
   public constructor(x: number, y: number) {
     super(x, y);
   }
@@ -39,7 +39,7 @@ export class Destination extends Node {
 export class Gain extends Node {
   public name = "Gain";
   public output: Output[] = [{ name: "Output", outs:[] }];
-  public input: Input[] = [{ name: "Value", min:0, max: 1, val: 0.5, node: null }, { name: "Input", node: null }];
+  public input: Input[] = [{ name: "Value", min:0, max: 1, val: 0.5, node: null, index:0 }, { name: "Input", node: null, index:0 }];
   public auNode:GainNode | undefined;
   public constructor(x: number, y: number) {
     super(x, y);

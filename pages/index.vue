@@ -2,15 +2,12 @@
   <div id="container">
     <div id="top-bar">
       <div id="left">
-        <div contenteditable id="tempo" title="tempo" size="1" type="number" @keydown.enter.prevent="inputs" @focusout="inputs">120</div>
+        <div contenteditable id="tempo" title="tempo" size="1" type="number" @keydown.enter.prevent="inputs"
+          @focusout="inputs">120</div>
         <div>
-          <div title="time signature top" size="1" contenteditable @keydown.enter.prevent="inputs" @focusout="inputs">
-            {{ timeSig.top }}
-          </div>
-          /
-          <div title="time signature bottom" @keydown.enter.prevent="inputs" @focusout="inputs" contenteditable>
-            {{ timeSig.bottom }}
-          </div>
+          <div title="time signature top" size="1" contenteditable @keydown.enter.prevent="inputs" @focusout="inputs">{{
+            timeSig.top }}</div>/<div title="time signature bottom" @keydown.enter.prevent="inputs" @focusout="inputs"
+            contenteditable>{{ timeSig.bottom }}</div>
         </div>
       </div>
       <div id="mid">
@@ -24,95 +21,70 @@
     </div>
     <div id="not-top-bar">
       <div id="modify">
-        <div
-          class="grid"
-          :style="{
-            backgroundPosition: `top ${pageModify.pan.y}px left ${pageModify.pan.x}px`,
-          }"
-          @contextmenu.prevent="gridCtxMenu"
-          @mousedown="drag.grid($event, 'down', pageModify, gridMenu)"
-          @mousemove="drag.grid($event, 'move', pageModify)"
-          @mouseup="
-            () => {
-              pageModify.pan.moving = false;
-              pageModify.tempLine.out = null;
-            }
-          "
-          @mouseout="
-            () => {
-              pageModify.pan.moving = false;
-            }
-          "
-        >
-          <div
-            class="node-wrap"
-            v-if="pageModify.cur"
-            :style="{
-              transform: `translate(${pageModify.pan.x}px, ${pageModify.pan.y}px)`,
-            }"
-          >
-            <div class="node" v-for="(node, i) in pageModify.cur.nodes" :style="{ top: node.y + 'px', left: node.x + 'px' }" :key="i">
-              <div class="node-title" @mousedown.stop="drag.node($event, 'down', node)" @mousemove.stop="drag.node($event, 'move', node)" @mouseup.stop="drag.node($event, 'up', node)" @mouseout.stop="drag.node($event, 'up', node)">
+        <div class="grid" @wheel="($event) => {
+          pageModify.pan.y -= $event.deltaY / 2;
+          pageModify.pan.x -= $event.deltaX / 2;
+        }" :style="{
+  backgroundPosition: `top ${pageModify.pan.y}px left ${pageModify.pan.x}px`,
+}" @contextmenu.prevent="gridCtxMenu" @mousedown="drag.grid($event, 'down', pageModify, gridMenu)"
+          @mousemove="drag.grid($event, 'move', pageModify)" @mouseup="() => {
+            pageModify.pan.moving = false;
+            pageModify.tempLine.out = null;
+          }
+            " @mouseout="() => {
+    pageModify.pan.moving = false;
+  }
+    ">
+          <div class="node-wrap" v-if="pageModify.cur" :style="{
+            transform: `translate(${pageModify.pan.x}px, ${pageModify.pan.y}px)`,
+          }">
+            <div class="node" v-for="(node, i) in pageModify.cur.nodes"
+              :style="{ top: node.y + 'px', left: node.x + 'px' }" :key="i">
+              <div class="node-title" @mousedown.stop="drag.node($event, 'down', node)"
+                @mousemove.stop="drag.node($event, 'move', node)" @mouseup.stop="drag.node($event, 'up', node)"
+                @mouseout.stop="drag.node($event, 'up', node)">
                 {{ node.name }}
               </div>
               <div v-for="(attr, a) in node.attribute" class="prop" :key="a">
                 <div v-if="'options' in attr">
                   <select v-model="node.attribute[a].selected">
-                    <option v-for="opt in attr.options" :key="opt" :value="opt">{{ opt }}</option>
+                    <option style="color:black;" v-for="opt in attr.options" :key="opt" :value="opt">{{ opt }}</option>
                   </select>
                 </div>
               </div>
-              <div
-                v-for="(inp, i) in node.input"
-                :key="i"
-                class="prop input"
-                @mouseup="
-                  () => {
-                    console.log(pageModify.tempLine);
-                    if (pageModify.tempLine.out && !pageModify.tempLine.out.outs.some((x) => x.index == i) && !inp.node && node != pageModify.tempLine.out.node) {
-                      pageModify.tempLine.out.outs.push({ node, index: i });
-                      inp.node = pageModify.tempLine.out.node;
-                      pageModify.tempLine.out = null;
-                    }
-                  }
-                "
-              >
+              <div v-for="(inp, i) in node.input" :key="i" class="prop input" @mouseup="() => {
+                console.log(pageModify.tempLine);
+                if (pageModify.tempLine.out && !pageModify.tempLine.out.outs.some((x) => x.index == i) && !inp.node && node != pageModify.tempLine.out.node) {
+                  pageModify.tempLine.out.outs.push({ node, index: i });
+                  inp.node = pageModify.tempLine.out.node;
+                  inp.index = pageModify.tempLine.index;
+                  pageModify.tempLine.out = null;
+                }
+              }
+                ">
                 <div class="connector left"></div>
-                <div>{{ inp.name }}</div>
+                <div>{{ inp.name + inp.index }}</div>
               </div>
 
               <div v-for="(out, o) in node.output" :key="o" class="prop output">
                 <div>{{ out.name }}</div>
-                <div
-                  class="connector right"
-                  @mousedown="
-                    ($event) => {
-                      pageModify.tempLine.out = out;
-                      pageModify.tempLine.out.node = node;
-                      pageModify.tempLine.el = $event.target;
-                    }
-                  "
-                >
-                  <div
-                    class="line"
-                    v-for="(line, j) in out.outs"
-                    :key="j"
-                    :style="{
-                      width: `${Math.sqrt((line.node.y - node.y + line.index * 30 - node.input.length * 30 - o * 30 + line.node.attribute.length * 30) ** 2 + (line.node.x - node.x - 100) ** 2)}px`,
-                      transform: `rotate(${(Math.atan2(line.node.y - node.y + line.index * 30 - node.input.length * 30 - o * 30 + line.node.attribute.length * 30, line.node.x - node.x - 100) * 180) / Math.PI}deg)`,
-                    }"
-                  >
+                <div class="connector right" @mousedown="($event) => {
+                  pageModify.tempLine.out = out;
+                  pageModify.tempLine.out.node = node;
+                  pageModify.tempLine.index = o;
+                  pageModify.tempLine.el = $event.target;
+                }
+                  ">
+                  <div class="line" v-for="(line, j) in out.outs" :key="j" :style="{
+                    width: `${Math.sqrt((line.node.y + line.index * 30 + line.node.attribute.length * 30 - node.input.length * 30 - node.y - o * 30 - node.attribute.length * 30) ** 2 + (line.node.x - node.x - 100) ** 2)}px`,
+                    transform: `rotate(${(Math.atan2(line.node.y + line.index * 30 + line.node.attribute.length * 30 - node.input.length * 30 - node.y - o * 30 - node.attribute.length * 30, line.node.x - node.x - 100) * 180) / Math.PI}deg)`,
+                  }">
                     {{ line.index }}
                   </div>
-                  <div
-                    id="temp-line"
-                    class="line"
-                    v-if="pageModify.tempLine.out == out"
-                    :style="{
-                      width: `${Math.sqrt(pageModify.tempLine.mouse.y ** 2 + pageModify.tempLine.mouse.x ** 2)}px`,
-                      transform: `rotate(${(Math.atan2(pageModify.tempLine.mouse.y, pageModify.tempLine.mouse.x) * 180) / Math.PI}deg)`,
-                    }"
-                  ></div>
+                  <div id="temp-line" class="line" v-if="pageModify.tempLine.out == out" :style="{
+                    width: `${Math.sqrt(pageModify.tempLine.mouse.y ** 2 + pageModify.tempLine.mouse.x ** 2)}px`,
+                    transform: `rotate(${(Math.atan2(pageModify.tempLine.mouse.y, pageModify.tempLine.mouse.x) * 180) / Math.PI}deg)`,
+                  }"></div>
                 </div>
               </div>
             </div>
@@ -128,53 +100,39 @@
         </div>
       </div>
       <div id="editor">
-        <div class="sheet" @mouseup="pageModify.cur = null" :style="{ gridAutoRows: '24px ' + '150px '.repeat(parts.length) }">
+        <div class="sheet" @mouseup="pageModify.cur = null"
+          :style="{ gridAutoRows: '24px ' + '150px '.repeat(parts.length) }">
           <div class="measures">
             <div class="bef-space">Measures</div>
-            <div
-              id="position"
-              :style="{
-                height: positionDomHeight + 'px',
-                display: 'block',
-                left: position * 150 * zoom.x + 'px',
-              }"
-            ></div>
+            <div id="position" :style="{
+              height: positionDomHeight + 'px',
+              display: 'block',
+              left: position * 150 * zoom.x + 'px',
+            }"></div>
             <div class="measure-c" :style="{ width: 150 * zoom.x + 'px ' }" :key="i" v-for="i in 50">
               {{ i }}
             </div>
           </div>
-          <div class="part" :class="{ selected: pageModify.cur == part }" v-for="(part, i) in parts" :key="i" @mouseup.stop="pageModify.cur = part">
+          <div class="part" :class="{ selected: pageModify.cur == part }" v-for="(part, i) in parts" :key="i"
+            @mouseup.stop="pageModify.cur = part">
             <div class="part-name" :class="{ selected: pageModify.cur == part }">
               {{ part.name }}
             </div>
-            <div
-              class="edit"
-              :class="{
-                midi: part.type == 'midi',
-                audio: part.type == 'audio',
-              }"
-            >
-              <div
-                class="clip"
-                v-for="(clip, i) in part.content"
-                :key="i"
-                :style="{
-                  width: clip.duration * 150 * zoom.x + 'px ',
-                  left: clip.location * 150 * zoom.x + 'px',
-                }"
-              >
+            <div class="edit" :class="{
+              midi: part.type == 'midi',
+              audio: part.type == 'audio',
+            }">
+              <div class="clip" v-for="(clip, i) in part.content" :key="i" :style="{
+                width: clip.duration * 150 * zoom.x + 'px ',
+                left: clip.location * 150 * zoom.x + 'px',
+              }">
                 <div class="clip-grap"></div>
                 <div class="midi-content" v-if="part.type == 'midi' && 'notes' in clip">
-                  <div
-                    v-for="(note, j) in clip.notes"
-                    :key="j"
-                    class="note"
-                    :style="{
-                      width: note.duration * 150 * zoom.x + 'px',
-                      left: note.location * 150 * zoom.x + 'px',
-                      top: ((note.pitch - part.noteRange.max) * 107.5) / (part.noteRange.min - part.noteRange.max) + 10 + 'px',
-                    }"
-                  ></div>
+                  <div v-for="(note, j) in clip.notes" :key="j" class="note" :style="{
+                    width: note.duration * 150 * zoom.x + 'px',
+                    left: note.location * 150 * zoom.x + 'px',
+                    top: ((note.pitch - part.noteRange.max) * 107.5) / (part.noteRange.min - part.noteRange.max) + 10 + 'px',
+                  }"></div>
                 </div>
               </div>
             </div>
@@ -217,33 +175,87 @@ let playBtn = () => {
 };
 
 let initSound = () => {
+  ctx.suspend();
+  ctx = new window.AudioContext();
   ctx.resume();
   oscillatorNodes = [];
   parts.value.map((p) => {
     let curNode;
     for (let nodeI = 0; nodeI < p.nodes.length; nodeI++) if (p.nodes[nodeI] instanceof nodes.Destination) {
       curNode = p.nodes[nodeI];
-      p.nodes.map((n) => {
+      calcIns(curNode.input[0], p, { dest: ctx.destination });
+      /*p.nodes.map((n) => {
         if (n instanceof nodes.Oscillator) {
           n.create(ctx);
           n.auNode!.start();
           n.auNode!.type = <OscillatorType>n.attribute[0].selected;
-          /*p.content.map((c) => {
+          p.content.map((c) => {
           let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
-          if ("notes" in c) c.notes.map((note) => n.auNode!.frequency.setValueAtTime(440 * 2 ** ((note.pitch - 69) / 12), clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top));*/
+          if ("notes" in c) c.notes.map((note) => n.auNode!.frequency.setValueAtTime(
+            440 * 2 ** ((note.pitch - 69) / 12), 
+            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top
+          ));
+          });
           if (n.output[0].outs?.some((i) => i.node instanceof nodes.Destination)) n.auNode!.connect(ctx.destination);
         }
-      });
+      }); */
+
       break; // there cannot be any other destination!
     }
   });
   oscillatorNodes.forEach((x) => x.start());
 };
-let calcAttribute = () => { //recursive function
+function calcIns(input: Input, part: Part, pass: any) { //recursive function
   //have to start consider to not use the built in nodes
+  let inNode = input.node;
+  if (inNode instanceof nodes.Oscillator) {
+    let oscillator = ctx.createOscillator();
+    oscillator.type = <OscillatorType>inNode.attribute[0].selected;
+    calcIns(inNode.input[0], part, oscillator.frequency);
+    oscillator.start();
+    if (pass) oscillator.connect(pass.dest);
+  }
+  if (inNode instanceof nodes.Gain) {
+    let gain = ctx.createGain();
+    gain.gain.setValueAtTime(1, ctx.currentTime);
+    calcIns(inNode.input[0], part, gain.gain);
+    calcIns(inNode.input[1], part, { dest: gain });
+    if (pass) gain.connect(pass.dest);
+  }
+  if (inNode instanceof nodes.Midi) {
+    if (input.index == 0) {
+      pass.setValueAtTime(100, ctx.currentTime)
+      part.content.map((c) => {
+        let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
+        if ("notes" in c) c.notes.map((note) => pass.setValueAtTime(
+          440 * 2 ** ((note.pitch - 69) / 12), // do midi-frequency node conversion later (but thats annoying??)
+          clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top
+        ));
+      });
+    }
+    if (input.index == 1) {
+      pass.setValueAtTime(0, ctx.currentTime);
+      part.content.map((c) => {
+        let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
+        if ("notes" in c) c.notes.map((note) => {
+          pass.setValueAtTime(
+            (note.velocity) / 127, // do midi-frequency node conversion later (but thats annoying??)
+            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top
+          )
+          pass.setValueAtTime(
+            0, // do midi-frequency node conversion later (but thats annoying??)
+            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top + note.duration * (240 / timeSig.bottom / tempo) * timeSig.top
+          )
+        }
+        );
+      });
+    }
+  }
 }
 
 let stopSound = () => {
+  ctx.suspend();
+  ctx = new window.AudioContext();
   ctx.suspend();
   parts.value.map((x) => {
     x.nodes.map((x) => {
@@ -318,11 +330,11 @@ let parts = ref(<Part[]>[
         location: 1,
         duration: 2,
         notes: <Note[]>[
-          { pitch: 60, location: 0, duration: 0.2, velocity: 69 },
-          { pitch: 62, location: 0.2, duration: 0.2, velocity: 69 },
+          { pitch: 60, location: 0, duration: 0.2, velocity: 60 },
+          { pitch: 62, location: 0.2, duration: 0.2, velocity: 40 },
           { pitch: 63, location: 0.4, duration: 0.2, velocity: 69 },
           { pitch: 65, location: 0.6, duration: 0.2, velocity: 69 },
-          { pitch: 62, location: 0.8, duration: 0.4, velocity: 69 },
+          { pitch: 62, location: 0.8, duration: 0.05, velocity: 30 },
           { pitch: 58, location: 1.2, duration: 0.2, velocity: 69 },
           { pitch: 60, location: 1.4, duration: 0.4, velocity: 69 },
         ],
@@ -355,7 +367,7 @@ let parts = ref(<Part[]>[
 let pageModify = ref(<Modify>{
   pan: { x: 0, y: 0, moving: false, offset: { x: 0, y: 0 } },
   cur: null,
-  tempLine: { el: null, mouse: { x: 0, y: 0 }, out: null },
+  tempLine: { el: null, mouse: { x: 0, y: 0 }, out: null, index: 0 },
   master: [],
 });
 
@@ -381,6 +393,7 @@ let ctx: AudioContext;
 
 onMounted(() => {
   ctx = new window.AudioContext();
+  ctx.suspend();
   document.addEventListener("keydown", (e) => {
     keys[e.key] = true;
     if (e.key == "-") zoom.value.x -= 0.1;
