@@ -14,17 +14,18 @@
                     @mouseup.stop :style="{ width: 150 * zoom.x + 'px ' }">{{ i }}</div>
             </div>
             <div class="part" :class="{ selected: pageModify.cur == part }" v-for="(part, i) in parts" :key="i"
-                @mouseup.stop="pageModify.cur = part">
+                @mouseup.stop="pageModify.cur = part" >
                 <div class="part-name" :class="{ selected: pageModify.cur == part }">
-                    {{ ((part.type == 'midi') ? '🎹' : '🔊') }} <br>
-                    <div size="1" contenteditable @keypress.stop @keydown.enter.prevent.stop="partInput($event, part)" @focusout="partInput($event, part)">{{ part.name }}</div>
+                    {{ (part.type == 'midi') ? '🎹' : '🔊' }} <br>
+                    <div size="1" contenteditable @keydown.enter.prevent.stop="partInput($event, part)" @focusout="partInput($event, part)">{{ part.name }}</div>
                 </div>
                 <div class="edit" :class="{
                     midi: part.type == 'midi',
                     audio: part.type == 'audio',
-                }">
+                }"  @mousedown.stop="($event) => position.val = ($event.offsetX - 150 * zoom.x) / (150 * zoom.x) + i"
+                    >
                     <div class="clip" v-for="(clip, i) in part.content" :key="i" :style="{
-                        width: clip.duration * 150 * zoom.x + 'px ',
+                        width: clip.duration * 150 * zoom.x + 'px',
                         left: clip.location * 150 * zoom.x + 'px',
                     }">
                         <div class="clip-grap"></div>

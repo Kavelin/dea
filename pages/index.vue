@@ -19,9 +19,10 @@
       </div>
       <div id="right"></div>
     </div>
-    <div id="not-top-bar">
+    <div id="not-top-bar"> <!-- Later there will be a way to size and add different editors ! -->
       <modify :pageModify="pageModify" />
       <editor :pageModify="pageModify" :parts="parts" :zoom="zoom" :position="position" />
+      <clip />
     </div>
   </div>
 </template>
@@ -48,7 +49,7 @@ let playing = () => {
     lastTime = Date.now();
     requestAnimationFrame(playing); //this could get a bit laggy? may have to change
   }
-};
+}
 let oscillatorNodes: OscillatorNode[] = [];
 let playBtn = () => {
   if (ctx.state != "running") initSound();
@@ -56,7 +57,7 @@ let playBtn = () => {
   lastTime = Date.now();
   stopped = !stopped;
   playing();
-};
+}
 
 let initSound = () => {
   ctx.suspend();
@@ -88,7 +89,7 @@ let initSound = () => {
     }
   });
   oscillatorNodes.forEach((x) => x.start());
-};
+}
 function calcIns(input: Input, part: Part, pass: any) { //recursive function
   //have to start consider to not use the built in nodes
   let inNode = input.node;
@@ -151,7 +152,7 @@ let stopSound = () => {
       }
     });
   });
-};
+}
 
 let stopBtn = () => {
   position.value.val = 0;
@@ -159,11 +160,11 @@ let stopBtn = () => {
   ctx.suspend();
   ctx = new window.AudioContext();
   ctx.suspend();
-};
+}
 
 let warpBtn = () => {
   document.querySelector(".sheet")!.scrollLeft = position.value.val * zoom.value.x * 150;
-};
+}
 
 //don't let this project die like your other projects
 
@@ -171,7 +172,7 @@ let tempo = 120; // beats per minute
 let timeSig = {
   top: 4, // how many beats in a measure
   bottom: 4, // the length of a beat, eg 4 is quarter note (1/4) for one beat
-};
+}
 let inputs = (e: Event) => {
   //div contenteditable inputs can't have a v-model!
   let el = <HTMLDivElement>e.target!; // convert EventTarget to the Div element, also it must exist
@@ -191,7 +192,7 @@ let inputs = (e: Event) => {
     if (!isNaN(val)) timeSig.bottom = Math.log2(val) % 1 == 0 ? val : timeSig.bottom;
     el.innerText = timeSig.bottom.toFixed(0).toString();
   }
-};
+}
 
 // mock data
 
@@ -255,12 +256,12 @@ let rangeMidiPart = (p: Part) => {
       if (pitches[i] > max) max = pitches[i];
       if (pitches[i] < min) min = pitches[i];
     }
-    p.noteRange = { min, max };
+    p.noteRange = { min, max }
   }
-};
+}
 parts.value.map(rangeMidiPart); // for mock data
 
-let keys = <{ [key: string]: any }>{};
+let keys = <{ [key: string]: any }>{}
 let ctx: AudioContext;
 
 onMounted(() => {
