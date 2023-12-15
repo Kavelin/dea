@@ -67,7 +67,7 @@ export abstract class Node {
 }
 
 export interface Part {
-  type: string;
+  type: 'audio'|'midi';
   name: string;
   content: MidiClip[] | AudioClip[];
   nodes: Node[];

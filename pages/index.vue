@@ -11,7 +11,7 @@
         </div>
       </div>
       <div id="mid">
-        <button title="go back" @click="position = 0">⏪</button>
+        <button title="go back" @click="position.val = 0">⏪</button>
         <button title="play" @click="playBtn">⏯</button>
         <button title="stop" @click="stopBtn">🟦</button>
         <button title="go to playhead" @click="warpBtn">⚓</button>
@@ -20,143 +20,27 @@
       <div id="right"></div>
     </div>
     <div id="not-top-bar">
-      <div id="modify">
-        <div class="grid" @wheel="($event) => {
-          pageModify.pan.y -= $event.deltaY / 2;
-          pageModify.pan.x -= $event.deltaX / 2;
-        }" :style="{
-  backgroundPosition: `top ${pageModify.pan.y}px left ${pageModify.pan.x}px`,
-}" @contextmenu.prevent="gridCtxMenu" @mousedown="drag.grid($event, 'down', pageModify, gridMenu)"
-          @mousemove="drag.grid($event, 'move', pageModify)" @mouseup="() => {
-            pageModify.pan.moving = false;
-            pageModify.tempLine.out = null;
-          }
-            " @mouseout="() => {
-    pageModify.pan.moving = false;
-  }
-    ">
-          <div class="node-wrap" v-if="pageModify.cur" :style="{
-            transform: `translate(${pageModify.pan.x}px, ${pageModify.pan.y}px)`,
-          }">
-            <div class="node" v-for="(node, i) in pageModify.cur.nodes"
-              :style="{ top: node.y + 'px', left: node.x + 'px' }" :key="i">
-              <div class="node-title" @mousedown.stop="drag.node($event, 'down', node)"
-                @mousemove.stop="drag.node($event, 'move', node)" @mouseup.stop="drag.node($event, 'up', node)"
-                @mouseout.stop="drag.node($event, 'up', node)">
-                {{ node.name }}
-              </div>
-              <div v-for="(attr, a) in node.attribute" class="prop" :key="a">
-                <div v-if="'options' in attr">
-                  <select v-model="node.attribute[a].selected">
-                    <option style="color:black;" v-for="opt in attr.options" :key="opt" :value="opt">{{ opt }}</option>
-                  </select>
-                </div>
-              </div>
-              <div v-for="(inp, i) in node.input" :key="i" class="prop input" @mouseup="() => {
-                console.log(pageModify.tempLine);
-                if (pageModify.tempLine.out && !pageModify.tempLine.out.outs.some((x) => x.index == i) && !inp.node && node != pageModify.tempLine.out.node) {
-                  pageModify.tempLine.out.outs.push({ node, index: i });
-                  inp.node = pageModify.tempLine.out.node;
-                  inp.index = pageModify.tempLine.index;
-                  pageModify.tempLine.out = null;
-                }
-              }
-                ">
-                <div class="connector left"></div>
-                <div>{{ inp.name + inp.index }}</div>
-              </div>
-
-              <div v-for="(out, o) in node.output" :key="o" class="prop output">
-                <div>{{ out.name }}</div>
-                <div class="connector right" @mousedown="($event) => {
-                  pageModify.tempLine.out = out;
-                  pageModify.tempLine.out.node = node;
-                  pageModify.tempLine.index = o;
-                  pageModify.tempLine.el = $event.target;
-                }
-                  ">
-                  <div class="line" v-for="(line, j) in out.outs" :key="j" :style="{
-                    width: `${Math.sqrt((line.node.y + line.index * 30 + line.node.attribute.length * 30 - node.input.length * 30 - node.y - o * 30 - node.attribute.length * 30) ** 2 + (line.node.x - node.x - 100) ** 2)}px`,
-                    transform: `rotate(${(Math.atan2(line.node.y + line.index * 30 + line.node.attribute.length * 30 - node.input.length * 30 - node.y - o * 30 - node.attribute.length * 30, line.node.x - node.x - 100) * 180) / Math.PI}deg)`,
-                  }">
-                    {{ line.index }}
-                  </div>
-                  <div id="temp-line" class="line" v-if="pageModify.tempLine.out == out" :style="{
-                    width: `${Math.sqrt(pageModify.tempLine.mouse.y ** 2 + pageModify.tempLine.mouse.x ** 2)}px`,
-                    transform: `rotate(${(Math.atan2(pageModify.tempLine.mouse.y, pageModify.tempLine.mouse.x) * 180) / Math.PI}deg)`,
-                  }"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="context-menu" ref="gridMenu">
-            <ul>
-              <li v-for="n in nodes" @mousedown.stop="ctxMenuClick($event, n)" :key="n.name">
-                {{ n.name }}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div id="editor">
-        <div class="sheet" @mouseup="pageModify.cur = null"
-          :style="{ gridAutoRows: '24px ' + '150px '.repeat(parts.length) }">
-          <div class="measures">
-            <div class="bef-space">Measures</div>
-            <div id="position" :style="{
-              height: positionDomHeight + 'px',
-              display: 'block',
-              left: position * 150 * zoom.x + 'px',
-            }"></div>
-            <div class="measure-c" :style="{ width: 150 * zoom.x + 'px ' }" :key="i" v-for="i in 50">
-              {{ i }}
-            </div>
-          </div>
-          <div class="part" :class="{ selected: pageModify.cur == part }" v-for="(part, i) in parts" :key="i"
-            @mouseup.stop="pageModify.cur = part">
-            <div class="part-name" :class="{ selected: pageModify.cur == part }">
-              {{ part.name }}
-            </div>
-            <div class="edit" :class="{
-              midi: part.type == 'midi',
-              audio: part.type == 'audio',
-            }">
-              <div class="clip" v-for="(clip, i) in part.content" :key="i" :style="{
-                width: clip.duration * 150 * zoom.x + 'px ',
-                left: clip.location * 150 * zoom.x + 'px',
-              }">
-                <div class="clip-grap"></div>
-                <div class="midi-content" v-if="part.type == 'midi' && 'notes' in clip">
-                  <div v-for="(note, j) in clip.notes" :key="j" class="note" :style="{
-                    width: note.duration * 150 * zoom.x + 'px',
-                    left: note.location * 150 * zoom.x + 'px',
-                    top: ((note.pitch - part.noteRange.max) * 107.5) / (part.noteRange.min - part.noteRange.max) + 10 + 'px',
-                  }"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <modify :pageModify="pageModify" />
+      <editor :pageModify="pageModify" :parts="parts" :zoom="zoom" :position="position" />
     </div>
   </div>
 </template>
 <script setup lang="ts">
 import { Node, type Part, type MidiClip, type AudioClip, type Note, type Modify, type Output, type Input } from "../ts/types";
-import * as drag from "../ts/drag";
 import * as nodes from "../ts/audio";
 import { sclTuning } from "../ts/scl";
 
 let zoom = ref({ x: 1 });
-let position = ref(0); // playhead position in measures
-let positionDomHeight = ref(0); //  calculate how tall the playhead is
+let position = ref({
+  val: 0, // playhead position in measures
+  domHeight: 0
+}); //  calculate how tall the playhead is
 let lastTime = 0;
 let stopped = true;
 let playing = () => {
   if (!stopped) {
     let timeEla = Date.now() - lastTime; //time elapsed since last update
-    position.value += timeEla / ((240000 / timeSig.bottom / tempo) * timeSig.top);
+    position.value.val += timeEla / ((240000 / timeSig.bottom / tempo) * timeSig.top);
     //(60000 ms per minute * 4 beats per whole note / bottom / beats per minute) gives the ms ber beat
     // ms / beat * beats / measure gives ms per measure
     // ms passed / ms / measure gives measures passed
@@ -222,8 +106,11 @@ function calcIns(input: Input, part: Part, pass: any) { //recursive function
     calcIns(inNode.input[1], part, { dest: gain });
     if (pass) gain.connect(pass.dest);
   }
+  if (inNode instanceof nodes.Value) {
+    pass.setValueAtTime(100, ctx.currentTime)
+  }
   if (inNode instanceof nodes.Midi) {
-    if (input.index == 0) {
+    if (input.index == 0) { // pitch
       pass.setValueAtTime(100, ctx.currentTime)
       part.content.map((c) => {
         let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
@@ -233,7 +120,7 @@ function calcIns(input: Input, part: Part, pass: any) { //recursive function
         ));
       });
     }
-    if (input.index == 1) {
+    if (input.index == 1) { // velocity
       pass.setValueAtTime(0, ctx.currentTime);
       part.content.map((c) => {
         let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
@@ -267,7 +154,7 @@ let stopSound = () => {
 };
 
 let stopBtn = () => {
-  position.value = 0;
+  position.value.val = 0;
   stopped = true;
   ctx.suspend();
   ctx = new window.AudioContext();
@@ -275,7 +162,7 @@ let stopBtn = () => {
 };
 
 let warpBtn = () => {
-  document.querySelector(".sheet")!.scrollLeft = position.value * zoom.value.x * 150;
+  document.querySelector(".sheet")!.scrollLeft = position.value.val * zoom.value.x * 150;
 };
 
 //don't let this project die like your other projects
@@ -286,7 +173,7 @@ let timeSig = {
   bottom: 4, // the length of a beat, eg 4 is quarter note (1/4) for one beat
 };
 let inputs = (e: Event) => {
-  //div contenteditable inputs can't have v-model :)
+  //div contenteditable inputs can't have a v-model!
   let el = <HTMLDivElement>e.target!; // convert EventTarget to the Div element, also it must exist
   let val: any = el.innerText;
   if (el.id == "tempo") {
@@ -304,19 +191,6 @@ let inputs = (e: Event) => {
     if (!isNaN(val)) timeSig.bottom = Math.log2(val) % 1 == 0 ? val : timeSig.bottom;
     el.innerText = timeSig.bottom.toFixed(0).toString();
   }
-};
-
-let gridMenu = ref(null);
-let gridCtxMenu = (e: MouseEvent) => {
-  let ele = <HTMLDivElement>gridMenu.value!;
-  ele.style.display = "block";
-  ele.style.top = `${e.clientY}px`;
-  ele.style.left = `${e.clientX}px`;
-};
-
-let ctxMenuClick = (e: MouseEvent, node: new (x: number, y: number) => any) => {
-  (<HTMLDivElement>gridMenu.value!).style.display = "none";
-  pageModify.value.cur?.nodes.push(new node(e.clientX - document.querySelector(".grid")!.getBoundingClientRect().y - pageModify.value.pan.x, e.clientY - document.querySelector(".grid")!.getBoundingClientRect().y - pageModify.value.pan.y));
 };
 
 // mock data
@@ -371,22 +245,20 @@ let pageModify = ref(<Modify>{
   master: [],
 });
 
-let rangeMidiParts = () => {
-  parts.value.map((p) => {
-    // generating midi clip ranges for each part
-    if (p.type == "midi") {
-      let pitches = p.content.flatMap((c) => (<MidiClip>c).notes.map((n) => n.pitch));
-      let min = pitches[0],
-        max = pitches[0];
-      for (let i = 1; i < pitches.length; ++i) {
-        if (pitches[i] > max) max = pitches[i];
-        if (pitches[i] < min) min = pitches[i];
-      }
-      p.noteRange = { min, max };
+let rangeMidiPart = (p: Part) => {
+  // generating midi clip ranges for each part
+  if (p.type == "midi") {
+    let pitches = p.content.flatMap((c) => (<MidiClip>c).notes.map((n) => n.pitch));
+    let min = pitches[0],
+      max = pitches[0];
+    for (let i = 1; i < pitches.length; ++i) {
+      if (pitches[i] > max) max = pitches[i];
+      if (pitches[i] < min) min = pitches[i];
     }
-  });
+    p.noteRange = { min, max };
+  }
 };
-rangeMidiParts(); // for mock data
+parts.value.map(rangeMidiPart); // for mock data
 
 let keys = <{ [key: string]: any }>{};
 let ctx: AudioContext;
@@ -405,12 +277,12 @@ onMounted(() => {
       playBtn();
     }
     if (e.key == "Home") {
-      position.value = 0;
+      position.value.val = 0;
     }
   });
   document.addEventListener("keyup", (e) => (keys[e.key] = false));
 
-  positionDomHeight.value = document.querySelector(".sheet")!.clientHeight!;
+  position.value.domHeight = document.querySelector(".sheet")!.clientHeight!;
   lastTime = Date.now();
   playing();
 });

@@ -28,6 +28,18 @@ export class Midi extends Node {
   }
 }
 
+export class Value extends Node {
+  public name = "Value";
+  public attribute = [
+    { name: "Value", min:0, max:100, val:50}
+  ];
+  public output: Output[] = [{ name: "Output", outs:[] }];
+  public input: Input[] = [];
+  public constructor(x: number, y: number) {
+    super(x, y);
+  }
+}
+
 export class Destination extends Node {
   public name = "Destination";
   public output: Output[] = [];
