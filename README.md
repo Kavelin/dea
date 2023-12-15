@@ -7,6 +7,7 @@ to-do list
     - make sound exponential ramp to value cause of clicking (or just use asdr all the time :p)
     - later: poly nodes that combine many of these into easier usable nodes
     - every part will have a channel node instead of a destination node
+        - what if a channel node is just a gain node that connects to the destination...!!!!
 - audio tracks
     - load audio clips
     - canvas draw waveform (or maybe svg)
