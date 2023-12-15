@@ -27,6 +27,15 @@ export class Midi extends Node {
     super(x, y);
   }
 }
+export class ADSR extends Node {
+  public name = "ADSR";
+  public output: Output[] = [{ name: "Pitch", outs:[] }, { name: "Velocity", outs:[] }];
+  public input: Input[] = [];
+  public constructor(x: number, y: number) {
+    super(x, y);
+  }
+}
+
 
 export class Value extends Node {
   public name = "Value";

@@ -22,7 +22,8 @@
                 <div class="edit" :class="{
                     midi: part.type == 'midi',
                     audio: part.type == 'audio',
-                }"  @mousedown.stop="($event) => position.val = ($event.offsetX - 150 * zoom.x) / (150 * zoom.x) + i"
+                }"  @mousedown.stop="($event) => 
+                position.val = ($event.offsetX - 150 * zoom.x) / (150 * zoom.x) + i"
                     >
                     <div class="clip" v-for="(clip, i) in part.content" :key="i" :style="{
                         width: clip.duration * 150 * zoom.x + 'px',

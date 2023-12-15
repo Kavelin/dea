@@ -9,7 +9,7 @@
             timeSig.top }}</div>/<div title="time signature bottom" @keydown.enter.prevent="inputs" @focusout="inputs"
             contenteditable>{{ timeSig.bottom }}</div>
         </div>
-      </div>
+      </div> 
       <div id="mid">
         <button title="go back" @click="position.val = 0">⏪</button>
         <button title="play" @click="playBtn">⏯</button>
@@ -102,13 +102,13 @@ function calcIns(input: Input, part: Part, pass: any) { //recursive function
   }
   if (inNode instanceof nodes.Gain) {
     let gain = ctx.createGain();
-    gain.gain.setValueAtTime(1, ctx.currentTime);
+    gain.gain.setTargetAtTime(0, ctx.currentTime, 0.01);
     calcIns(inNode.input[0], part, gain.gain);
     calcIns(inNode.input[1], part, { dest: gain });
     if (pass) gain.connect(pass.dest);
   }
   if (inNode instanceof nodes.Value) {
-    pass.setValueAtTime(100, ctx.currentTime)
+    pass.setTargetAtTime(inNode.attribute[0].val, ctx.currentTime, 0.01)
   }
   if (inNode instanceof nodes.Midi) {
     if (input.index == 0) { // pitch
@@ -122,17 +122,17 @@ function calcIns(input: Input, part: Part, pass: any) { //recursive function
       });
     }
     if (input.index == 1) { // velocity
-      pass.setValueAtTime(0, ctx.currentTime);
+      pass.setTargetAtTime(0, ctx.currentTime, 0.01);
       part.content.map((c) => {
         let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
         if ("notes" in c) c.notes.map((note) => {
-          pass.setValueAtTime(
+          pass.setTargetAtTime(
             (note.velocity) / 127, // do midi-frequency node conversion later (but thats annoying??)
-            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top
+            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top, 0.01
           )
-          pass.setValueAtTime(
+          pass.setTargetAtTime(
             0, // do midi-frequency node conversion later (but thats annoying??)
-            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top + note.duration * (240 / timeSig.bottom / tempo) * timeSig.top
+            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top + note.duration * (240 / timeSig.bottom / tempo) * timeSig.top, 0.01
           )
         }
         );
