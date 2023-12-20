@@ -98,17 +98,20 @@ function calcIns(input: Input, part: Part, pass: any) { //recursive function
     oscillator.type = <OscillatorType>inNode.attribute[0].selected;
     calcIns(inNode.input[0], part, oscillator.frequency);
     oscillator.start();
-    if (pass) oscillator.connect(pass.dest);
+    if (pass.dest) oscillator.connect(pass.dest);
   }
   if (inNode instanceof nodes.Gain) {
     let gain = ctx.createGain();
     gain.gain.setTargetAtTime(0, ctx.currentTime, 0.01);
     calcIns(inNode.input[0], part, gain.gain);
     calcIns(inNode.input[1], part, { dest: gain });
-    if (pass) gain.connect(pass.dest);
+    if (pass.dest) gain.connect(pass.dest);
   }
   if (inNode instanceof nodes.Value) {
-    pass.setTargetAtTime(inNode.attribute[0].val, ctx.currentTime, 0.01)
+    pass.setValueAtTime(inNode.attribute[0].val, ctx.currentTime)
+  }
+  if (inNode instanceof nodes.ADSR) {
+    pass.setValueAtTime(inNode.attribute[0].val, ctx.currentTime)
   }
   if (inNode instanceof nodes.Midi) {
     if (input.index == 0) { // pitch
@@ -117,7 +120,7 @@ function calcIns(input: Input, part: Part, pass: any) { //recursive function
         let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
         if ("notes" in c) c.notes.map((note) => pass.setValueAtTime(
           440 * 2 ** ((note.pitch - 69) / 12), // do midi-frequency node conversion later (but thats annoying??)
-          clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top
+          clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top - position.value.val * (240 / timeSig.bottom / tempo) * timeSig.top
         ));
       });
     }
@@ -127,12 +130,12 @@ function calcIns(input: Input, part: Part, pass: any) { //recursive function
         let clipLoc = (240 / timeSig.bottom / tempo) * timeSig.top * c.location;
         if ("notes" in c) c.notes.map((note) => {
           pass.setTargetAtTime(
-            (note.velocity) / 127, // do midi-frequency node conversion later (but thats annoying??)
-            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top, 0.01
+            (note.velocity) / 127, 
+            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top - position.value.val * (240 / timeSig.bottom / tempo) * timeSig.top, 0.01
           )
           pass.setTargetAtTime(
-            0, // do midi-frequency node conversion later (but thats annoying??)
-            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top + note.duration * (240 / timeSig.bottom / tempo) * timeSig.top, 0.01
+            0, 
+            clipLoc + note.location * (240 / timeSig.bottom / tempo) * timeSig.top + note.duration * (240 / timeSig.bottom / tempo) * timeSig.top - position.value.val * (240 / timeSig.bottom / tempo) * timeSig.top, 0.01
           )
         }
         );

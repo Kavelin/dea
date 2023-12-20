@@ -29,8 +29,15 @@ export class Midi extends Node {
 }
 export class ADSR extends Node {
   public name = "ADSR";
-  public output: Output[] = [{ name: "Pitch", outs:[] }, { name: "Velocity", outs:[] }];
-  public input: Input[] = [];
+  public attribute = [
+    { name: "Attack", min:0, max:1, val:0.05},
+    { name: "Decay", min:0, max:2, val:0.5},
+    { name: "Sustain", min:0, max:1, val:0.5},
+    { name: "Release", min:0, max:4, val:1},
+  ];
+  public output: Output[] = [{ name: "Value", outs:[] }];
+  public input: Input[] = [
+    { name: "Value", min:0, max: 1, val: 0.5, node: null, index:0 },];
   public constructor(x: number, y: number) {
     super(x, y);
   }
@@ -40,7 +47,7 @@ export class ADSR extends Node {
 export class Value extends Node {
   public name = "Value";
   public attribute = [
-    { name: "Value", min:0, max:100, val:50}
+    { name: "Value", min:0, max:22000, val:50},
   ];
   public output: Output[] = [{ name: "Output", outs:[] }];
   public input: Input[] = [];

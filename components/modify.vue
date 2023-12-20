@@ -52,7 +52,8 @@
               </select>
             </div>
             <div v-if="'val' in attr">
-              <div contenteditable @keydown.enter.prevent="input($event, node.attribute[a])" @focusout="input($event, node.attribute[a])">{{ node.attribute[a].val }}</div>
+              {{ node.attribute[a].name }}: <div contenteditable @keydown.enter.prevent="input($event, node.attribute[a])" 
+              @focusout="input($event, node.attribute[a])">{{ node.attribute[a].val }}</div>
             </div>
           </div>
           <div
@@ -228,6 +229,7 @@ div[contenteditable] {
     width: min-content;
     outline: none;
     padding: 4px;
+    display: inline;
 }
 
 div[contenteditable]:hover {
