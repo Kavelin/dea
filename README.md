@@ -1,4 +1,11 @@
+~~drug enforcement administration~~
 (what plans to be) an intuitive daw based on the Ableton DAW and Blender's nodes
+
+gonna try to use webassembly if that doesn't work i'll go back to nuxt
+reason for using webassembly: can write my own audio engine because web audio isn't good for low level low latency dsp audio processing
+i can use rust for webassembly for this
+
+
 
 to-do list
 - implement nodes with sound
