@@ -20,7 +20,8 @@
       <div id="right"></div>
     </div>
     <div id="not-top-bar"> <!-- Later there will be a way to size and add different editors ! -->
-      <modify :pageModify="pageModify" />
+      <rete-modify :pageModify="pageModify" />
+      <!-- <modify :pageModify="pageModify" /> -->
       <editor :pageModify="pageModify" :parts="parts" :zoom="zoom" :position="position" />
       <clip />
     </div>
@@ -64,7 +65,7 @@ let initSound = () => {
   ctx = new window.AudioContext();
   ctx.resume();
   oscillatorNodes = [];
-  parts.value.map((p) => {
+  parts.value.map((p: Part) => {
     let curNode;
     for (let nodeI = 0; nodeI < p.nodes.length; nodeI++) if (p.nodes[nodeI] instanceof nodes.Destination) {
       curNode = p.nodes[nodeI];
@@ -148,10 +149,10 @@ let stopSound = () => {
   ctx.suspend();
   ctx = new window.AudioContext();
   ctx.suspend();
-  parts.value.map((x) => {
-    x.nodes.map((x) => {
-      if (x instanceof nodes.Oscillator) {
-        x.auNode?.stop();
+  parts.value.map((p: Part) => {
+    p.nodes.map((p) => {
+      if (p instanceof nodes.Oscillator) {
+        p.auNode?.stop();
       }
     });
   });

@@ -166,7 +166,7 @@
 
 .connector {
   background: orange;
-  width: 8px;
+  width: 8px; 
   height: 8px;
   position: relative;
   border-radius: 50%;
